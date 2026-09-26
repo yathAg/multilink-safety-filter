@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-Link Safety Filtering for VLA Policies</title>
+  <meta name="description" content="A training-free safety filter that keeps a pretrained vision-language-action robot policy from hitting moving objects, guarding the whole arm and running on one laptop.">
+  <meta property="og:title" content="Multi-Link Safety Filtering for VLA Policies Around Moving Hazards">
+  <meta property="og:description" content="A training-free safety filter that keeps a pretrained robot policy from hitting moving objects: it guards the gripper, wrist and forearm, follows the object as it moves, and runs on one laptop.">
+  <meta property="og:image" content="https://yathag.github.io/multilink-safety-filter/static/images/poster_hw_setup.jpg">
+  <meta property="og:url" content="https://yathag.github.io/multilink-safety-filter/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1 class="title">Multi-Link Safety Filtering for VLA Policies Around Moving Hazards</h1>
+    <p class="authors">
+      <span>Yatharth Agarwal</span>
+      <span>Vijay Raghunathan</span>
+    </p>
+    <p class="affil">School of Electrical and Computer Engineering, Purdue University</p>
+    <nav class="links" aria-label="Paper links">
+      <a class="btn" href="static/paper.pdf">Paper (PDF)</a>
+      <span class="btn disabled" title="The arXiv link appears here once the preprint is announced">arXiv (soon)</span>
+      <a class="btn" href="#simulation">Videos</a>
+      <a class="btn" href="#bibtex">BibTeX</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="teaser" aria-label="Overview">
+    <div class="grid">
+      <figure class="clip">
+        <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_hw_1_unshielded_moving_hazard.jpg"><source src="static/videos/hw_1_unshielded_moving_hazard.mp4" type="video/mp4"></video>
+        <figcaption><span class="pill bad-bg">No filter</span> The arm knocks the bottle over.</figcaption>
+      </figure>
+      <figure class="clip">
+        <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_hw_2_shielded_moving_hazard.jpg"><source src="static/videos/hw_2_shielded_moving_hazard.mp4" type="video/mp4"></video>
+        <figcaption><span class="pill good-bg">With our filter</span> The cube reaches the cup and the bottle stays upright.</figcaption>
+      </figure>
+    </div>
+    <p class="lead">A robot policy that follows language instructions can finish its task and still knock over things it was never asked to touch. We add a safety filter between the policy and the robot that keeps the whole arm away from a hazard, even while someone moves it, without retraining the policy.</p>
+  </section>
+
+  <section id="idea">
+    <h2>The idea in three parts</h2>
+    <div class="cards">
+      <article class="card">
+        <h3><span class="tag">1</span> Guard the whole arm</h3>
+        <p>Many safety filters for these policies only guard the gripper. Ours also guards the wrist and forearm, which can hit things before the gripper does as the arm reaches across the table.</p>
+      </article>
+      <article class="card">
+        <h3><span class="tag">2</span> Follow moving objects</h3>
+        <p>The object to avoid is found once, at the start. After that a lightweight tracker follows it as it moves, instead of searching for it again in every frame.</p>
+      </article>
+      <article class="card">
+        <h3><span class="tag">3</span> Run on one laptop</h3>
+        <p>The robot policy, the object finder and the safety filter all run on a single laptop processor. The filter only nudges the policy's commands when the arm gets too close.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="simulation">
+    <h2>Moving hazards in simulation</h2>
+    <p class="lead">We built a simulated test in which the object to avoid either stays still or moves in one of five ways, at a slow, steady 50&nbsp;mm/s.</p>
+    <figure class="clip wide">
+      <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_sim_conditions.jpg"><source src="static/videos/sim_conditions.mp4" type="video/mp4"></video>
+      <figcaption>The six ways the hazard moves: still, a small circle, back and forth, or a one-way slide of three lengths.</figcaption>
+    </figure>
+    <p>Averaged over all six:</p>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Episodes that hit the object</div>
+        <div class="stat-row"><span class="bad">65.62%</span><span class="arrow" aria-hidden="true">→</span><span class="good">27.27%</span></div>
+        <div class="stat-note">no filter → with our filter (lower is better)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Task done, object untouched</div>
+        <div class="stat-row"><span class="bad">29.35%</span><span class="arrow" aria-hidden="true">→</span><span class="good">50.43%</span></div>
+        <div class="stat-note">no filter → with our filter (higher is better)</div>
+      </div>
+    </div>
+    <p>Each clip runs the same scene and start twice: <strong>left, no filter</strong>; <strong>right, with our filter</strong>.</p>
+    <div class="grid">
+      <figure class="clip">
+        <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_sim_stationary.jpg"><source src="static/videos/sim_stationary.mp4" type="video/mp4"></video>
+        <figcaption><strong>Still.</strong> Without the filter, the forearm, not the gripper, strikes the moka pot.</figcaption>
+      </figure>
+      <figure class="clip">
+        <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_sim_orbit-025.jpg"><source src="static/videos/sim_orbit-025.mp4" type="video/mp4"></video>
+        <figcaption><strong>Small circle.</strong> The wine bottle circles in place.</figcaption>
+      </figure>
+      <figure class="clip">
+        <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_sim_shuttle-300.jpg"><source src="static/videos/sim_shuttle-300.mp4" type="video/mp4"></video>
+        <figcaption><strong>Back and forth.</strong> The book never stops moving.</figcaption>
+      </figure>
+      <figure class="clip">
+        <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_sim_escape-050.jpg"><source src="static/videos/sim_escape-050.mp4" type="video/mp4"></video>
+        <figcaption><strong>Short slide.</strong> The milk carton slides a little, then stops.</figcaption>
+      </figure>
+      <figure class="clip">
+        <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_sim_escape-150.jpg"><source src="static/videos/sim_escape-150.mp4" type="video/mp4"></video>
+        <figcaption><strong>Medium slide.</strong> The carton slides farther before it stops.</figcaption>
+      </figure>
+      <figure class="clip">
+        <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_sim_escape-300.jpg"><source src="static/videos/sim_escape-300.mp4" type="video/mp4"></video>
+        <figcaption><strong>Long slide.</strong> The carton travels the farthest, so tracking it matters most.</figcaption>
+      </figure>
+    </div>
+    <p class="note">These are hand-picked examples in which the policy alone finishes the task but hits the object. The numbers above come from the full test in the paper.</p>
+  </section>
+
+  <section id="hardware">
+    <h2>On a real robot arm</h2>
+    <p class="lead">The same filter runs on a low-cost SO-101 arm while a person carries a bottle into its path. The robot's task is to place a sugar cube in a cup.</p>
+    <figure class="clip wide">
+      <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_hw_setup.jpg"><source src="static/videos/hw_setup.mp4" type="video/mp4"></video>
+      <figcaption>The setup: the arm, a depth camera on a tripod and a wrist camera, all run by one Intel laptop.</figcaption>
+    </figure>
+    <div class="grid">
+      <figure class="clip">
+        <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_hw_S2_sub1_ellipsoid.jpg"><source src="static/videos/hw_S2_sub1_ellipsoid.mp4" type="video/mp4"></video>
+        <figcaption><span class="pill">What the filter sees</span> Blue shapes cover the arm; the red shape covers the bottle. The filter keeps them apart.</figcaption>
+      </figure>
+      <figure class="clip">
+        <video class="autoplay" muted loop playsinline preload="none" poster="static/images/poster_hw_S2_sub3_tracked.jpg"><source src="static/videos/hw_S2_sub3_tracked.mp4" type="video/mp4"></video>
+        <figcaption><span class="pill">Tracking</span> The red shape moves with the bottle as it is carried; the cyan line shows how far it has gone.</figcaption>
+      </figure>
+    </div>
+    <p>Across four tasks with four tries each, the arm touched the bottle in 3 of 16 tries with the filter and in 11 of 16 without it. It finished the task in 11 tries with the filter and in 13 without.</p>
+  </section>
+
+  <section id="edge">
+    <h2>Small enough for a laptop</h2>
+    <p class="lead">Everything runs on one Intel Core Ultra laptop processor, with no server or network connection.</p>
+    <div class="facts two">
+      <div class="fact"><div class="fact-num">~2&nbsp;ms</div><div class="fact-text">for the safety filter to check each command</div></div>
+      <div class="fact"><div class="fact-num">343 → 177&nbsp;ms</div><div class="fact-text">per policy decision, after trimming unused inputs and taking fewer refinement steps; the policy's weights are unchanged</div></div>
+    </div>
+  </section>
+
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <p>A vision–language–action (VLA) policy can finish a manipulation task while knocking over objects unrelated to it, so task success alone does not show that the policy is safe to deploy in clutter. We study how to keep a pretrained VLA policy clear of such hazards at run time without retraining it, which requires guarding more of the arm than the end effector, following the hazard as it moves, and sharing onboard compute with the policy. Our training-free shield covers the gripper, wrist, and forearm with five ellipsoids and filters every commanded motion through one barrier program against a keep-out ellipsoid fitted from RGB-D perception at reset. Sparse optical flow then carries that ellipsoid's center along with the hazard, with no repeated detection or refitting. Over six simulated hazard-motion conditions, the shield lowers collision from 65.62% to 27.27% and raises safe-success, task completion without collision, from 29.35% to 50.43%. Ablations show that guarding the arm links protects beyond end-effector shielding, and that tracking recovers most of the protection lost when the hazard estimate is frozen at reset. On heterogeneous edge hardware, the five-ellipsoid barrier runs on the CPU in 2.2&nbsp;ms at the 99th percentile, and trimming the vision–language prefix and taking fewer flow-matching steps shortens each π<sub>0.5</sub> policy call on the integrated GPU from 343 to 177.3&nbsp;ms. On a physical SO-101 arm across four tasks, the arm touched the hazard in 3 of 16 shielded episodes versus 11 of 16 unshielded ones.</p>
+  </section>
+
+  <section id="bibtex">
+    <h2>BibTeX</h2>
+    <div class="bib">
+      <button class="copy" type="button" data-target="bib-text">Copy</button>
+<pre id="bib-text">@misc{agarwal2026multilink,
+  title  = {Multi-Link Safety Filtering for {VLA} Policies
+            Around Moving Hazards},
+  author = {Agarwal, Yatharth and Raghunathan, Vijay},
+  year   = {2026},
+  note   = {Preprint}
+}</pre>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">School of Electrical and Computer Engineering, Purdue University</div>
+</footer>
+
+<script>
+  // Play a looping clip only while it is on screen, so the page does not
+  // download and decode every video at once. Readers who ask for reduced
+  // motion get the controls instead of autoplay.
+  (function () {
+    var clips = document.querySelectorAll('video.autoplay');
+    var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (still || !('IntersectionObserver' in window)) {
+      clips.forEach(function (v) { v.preload = 'metadata'; v.controls = true; });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var v = e.target;
+        if (e.isIntersecting) {
+          if (v.preload === 'none') { v.preload = 'auto'; }
+          var p = v.play();
+          if (p && p.catch) { p.catch(function () { v.controls = true; }); }
+        } else {
+          v.pause();
+        }
+      });
+    }, { threshold: 0.35 });
+    clips.forEach(function (v) { io.observe(v); });
+  })();
+
+  document.querySelectorAll('button.copy').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var pre = document.getElementById(b.dataset.target);
+      var selectText = function () {
+        var r = document.createRange(); r.selectNodeContents(pre);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        b.textContent = 'Selected';
+      };
+      var done = function () { b.textContent = 'Copied'; };
+      try {
+        navigator.clipboard.writeText(pre.textContent).then(done, selectText);
+      } catch (err) { selectText(); }
+      setTimeout(function () { b.textContent = 'Copy'; }, 1800);
+    });
+  });
+</script>
+</body>
+</html>
